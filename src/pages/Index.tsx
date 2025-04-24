@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import GameGrid from '../components/GameGrid';
 import GameScore from '../components/GameScore';
+import CompletionDialog from '../components/CompletionDialog';
 import { TileType } from '../components/CircuitTile';
 import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -10,6 +11,7 @@ const Index = () => {
   const { toast } = useToast();
   const [score, setScore] = useState(0);
   const [moves, setMoves] = useState(0);
+  const [isCompleted, setIsCompleted] = useState(false);
   const [tiles, setTiles] = useState<TileType[]>([
     { id: 1, rotation: 0, connections: [true, false, true, false], isStart: true },
     { id: 2, rotation: 90, connections: [true, true, false, false] },
@@ -21,6 +23,15 @@ const Index = () => {
     { id: 8, rotation: 90, connections: [true, false, true, false] },
     { id: 9, rotation: 180, connections: [true, false, false, true], isEnd: true },
   ]);
+
+  const checkCircuitCompletion = (tiles: TileType[]) => {
+    const startTile = tiles.find(tile => tile.isStart);
+    const endTile = tiles.find(tile => tile.isEnd);
+    
+    if (!startTile || !endTile) return false;
+    
+    return startTile.isConnected && endTile.isConnected;
+  };
 
   const handleTileRotate = (index: number) => {
     const newTiles = [...tiles];
@@ -73,6 +84,10 @@ const Index = () => {
     }
 
     setTiles(newTiles);
+    
+    if (checkCircuitCompletion(newTiles)) {
+      setIsCompleted(true);
+    }
   };
 
   const getRotatedConnections = (tile: TileType) => {
@@ -107,6 +122,12 @@ const Index = () => {
       <p className="mt-8 text-primary/70 text-sm">
         Rotate tiles to connect the circuits from green to red!
       </p>
+      
+      <CompletionDialog 
+        isOpen={isCompleted} 
+        score={score} 
+        moves={moves} 
+      />
     </div>
   );
 };
