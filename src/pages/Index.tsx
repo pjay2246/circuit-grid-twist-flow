@@ -32,20 +32,24 @@ const Index = () => {
     checkConnections(newTiles);
   };
 
+  // Corrected connection checking function
   const checkConnections = (currentTiles: TileType[]) => {
     const newTiles = currentTiles.map(tile => ({ ...tile, isConnected: false }));
     let isAnyConnected = false;
 
-    // Simple connection check for adjacent tiles
+    // Check connections between adjacent tiles
     for (let i = 0; i < 9; i++) {
       const tile = newTiles[i];
-      const rotation = tile.rotation / 90;
+      // Calculate actual connection points based on rotation
+      const tileConnections = getRotatedConnections(tile);
       
       // Check right connection
       if (i % 3 < 2) {
         const rightTile = newTiles[i + 1];
-        const rightRotation = rightTile.rotation / 90;
-        if (tile.connections[(2 - rotation) % 4] && rightTile.connections[(0 - rightRotation) % 4]) {
+        const rightConnections = getRotatedConnections(rightTile);
+        
+        // East of current tile (index 2) connects with West of right tile (index 0)
+        if (tileConnections[2] && rightConnections[0]) {
           tile.isConnected = true;
           rightTile.isConnected = true;
           isAnyConnected = true;
@@ -55,8 +59,10 @@ const Index = () => {
       // Check bottom connection
       if (i < 6) {
         const bottomTile = newTiles[i + 3];
-        const bottomRotation = bottomTile.rotation / 90;
-        if (tile.connections[(3 - rotation) % 4] && bottomTile.connections[(1 - bottomRotation) % 4]) {
+        const bottomConnections = getRotatedConnections(bottomTile);
+        
+        // South of current tile (index 3) connects with North of bottom tile (index 1)
+        if (tileConnections[3] && bottomConnections[1]) {
           tile.isConnected = true;
           bottomTile.isConnected = true;
           isAnyConnected = true;
@@ -73,6 +79,20 @@ const Index = () => {
     }
 
     setTiles(newTiles);
+  };
+
+  // Helper function to get connections based on rotation
+  const getRotatedConnections = (tile: TileType) => {
+    const { connections, rotation } = tile;
+    const rotationSteps = (rotation / 90) % 4;
+    const rotatedConnections = [...connections];
+    
+    // Rotate the connections array based on rotation
+    for (let i = 0; i < rotationSteps; i++) {
+      rotatedConnections.unshift(rotatedConnections.pop()!);
+    }
+    
+    return rotatedConnections;
   };
 
   useEffect(() => {

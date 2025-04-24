@@ -17,23 +17,27 @@ interface CircuitTileProps {
 const CircuitTile: React.FC<CircuitTileProps> = ({ tile, onRotate }) => {
   const getCircuitLines = () => {
     const lines = [];
-    if (tile.connections[0]) lines.push('top-1/2 left-1/2 h-[2px] w-1/2 -translate-x-1/2 rotate-180');
-    if (tile.connections[1]) lines.push('top-1/2 left-1/2 w-[2px] h-1/2 -translate-y-1/2');
-    if (tile.connections[2]) lines.push('top-1/2 left-1/2 h-[2px] w-1/2 -translate-x-0');
-    if (tile.connections[3]) lines.push('top-1/2 left-1/2 w-[2px] h-1/2 translate-y-0');
+    // Top connection (North)
+    if (tile.connections[0]) lines.push('top-0 left-1/2 w-[2px] h-1/2 -translate-x-1/2');
+    // Right connection (East)
+    if (tile.connections[1]) lines.push('top-1/2 right-0 h-[2px] w-1/2 -translate-y-1/2');
+    // Bottom connection (South)
+    if (tile.connections[2]) lines.push('bottom-0 left-1/2 w-[2px] h-1/2 -translate-x-1/2');
+    // Left connection (West)
+    if (tile.connections[3]) lines.push('top-1/2 left-0 h-[2px] w-1/2 -translate-y-1/2');
     return lines;
   };
 
   return (
     <div
-      className="circuit-tile relative"
+      className={`circuit-tile relative group ${tile.isConnected ? 'border-primary' : ''}`}
       onClick={onRotate}
-      style={{ transform: `rotate(${tile.rotation}deg)` }}
+      style={{ transform: `rotate(${tile.rotation}deg)`, transition: 'transform 0.3s ease-in-out' }}
     >
       {getCircuitLines().map((position, index) => (
         <div
           key={index}
-          className={`circuit-line ${position} ${tile.isConnected ? 'circuit-connected' : ''}`}
+          className={`absolute ${position} ${tile.isConnected ? 'circuit-connected' : 'circuit-line'}`}
         />
       ))}
       <RotateCw className="absolute -top-2 -right-2 w-4 h-4 text-primary/50 opacity-0 group-hover:opacity-100 transition-opacity" />
