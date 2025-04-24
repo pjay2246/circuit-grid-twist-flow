@@ -1,4 +1,5 @@
 
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -12,16 +13,26 @@ interface CompletionDialogProps {
   isOpen: boolean;
   score: number;
   moves: number;
+  currentLevel: number;
+  moveLimit: number;
+  onNextLevel: () => void;
 }
 
-const CompletionDialog = ({ isOpen, score, moves }: CompletionDialogProps) => {
+const CompletionDialog = ({ 
+  isOpen, 
+  score, 
+  moves,
+  currentLevel,
+  moveLimit,
+  onNextLevel 
+}: CompletionDialogProps) => {
   return (
     <Dialog open={isOpen}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-center gap-2 text-2xl">
             <Trophy className="h-6 w-6 text-yellow-500" />
-            Circuit Complete!
+            Level {currentLevel} Complete!
           </DialogTitle>
           <DialogDescription className="text-center pt-4">
             <p className="text-lg mb-2">Congratulations! You've connected the circuit!</p>
@@ -32,9 +43,15 @@ const CompletionDialog = ({ isOpen, score, moves }: CompletionDialogProps) => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Moves Used</p>
-                <p className="text-xl font-bold text-primary">{moves}</p>
+                <p className="text-xl font-bold text-primary">{moves}/{moveLimit}</p>
               </div>
             </div>
+            <Button 
+              onClick={onNextLevel}
+              className="mt-6"
+            >
+              Next Level
+            </Button>
           </DialogDescription>
         </DialogHeader>
       </DialogContent>
