@@ -17,6 +17,19 @@ interface CircuitTileProps {
 }
 
 const CircuitTile: React.FC<CircuitTileProps> = ({ tile, onRotate }) => {
+  // Ensure we have a valid tile with connections before proceeding
+  if (!tile || !tile.connections) {
+    // Return a placeholder or empty tile if tile data is invalid
+    return (
+      <div 
+        className="circuit-tile bg-gray-200 flex items-center justify-center"
+        onClick={onRotate}
+      >
+        <span className="text-gray-400">Invalid</span>
+      </div>
+    );
+  }
+
   const getCircuitLines = () => {
     const lines = [];
     // Top connection (North)

@@ -8,11 +8,17 @@ interface GameGridProps {
 }
 
 const GameGrid: React.FC<GameGridProps> = ({ tiles, onTileRotate }) => {
+  // Ensure tiles is an array before rendering
+  if (!tiles || !Array.isArray(tiles)) {
+    console.error("Invalid tiles prop provided to GameGrid:", tiles);
+    return <div className="p-4 text-red-500">Error: Invalid game data</div>;
+  }
+
   return (
     <div className="grid grid-cols-3 gap-4 p-4 bg-background/5 rounded-xl">
       {tiles.map((tile, index) => (
         <CircuitTile
-          key={tile.id}
+          key={tile?.id || `tile-${index}`}
           tile={tile}
           onRotate={() => onTileRotate(index)}
         />

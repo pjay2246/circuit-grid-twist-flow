@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import GameGrid from '../components/GameGrid';
 import GameScore from '../components/GameScore';
@@ -14,13 +15,17 @@ const Index = () => {
   const [score, setScore] = useState(0);
   const [moves, setMoves] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
-  const [tiles, setTiles] = useState<TileType[]>(levels[0].tiles);
+  const [tiles, setTiles] = useState<TileType[]>(() => {
+    // Ensure we create a deep copy of the level tiles to avoid reference issues
+    return levels[0]?.tiles?.map(tile => ({...tile})) || [];
+  });
 
   const handleNextLevel = () => {
     if (currentLevel < levels.length) {
       const nextLevel = currentLevel + 1;
       setCurrentLevel(nextLevel);
-      setTiles(levels[nextLevel - 1].tiles);
+      // Create a deep copy of the level tiles to avoid reference issues
+      setTiles(levels[nextLevel - 1]?.tiles?.map(tile => ({...tile})) || []);
       setMoves(0);
       setIsCompleted(false);
       
@@ -37,6 +42,11 @@ const Index = () => {
   };
 
   const handleTileRotate = (index: number) => {
+    if (!tiles[index]) {
+      console.error("Attempted to rotate a non-existent tile at index:", index);
+      return;
+    }
+
     const currentLevelConfig = levels[currentLevel - 1];
     if (moves >= currentLevelConfig.moveLimit) {
       toast({
@@ -58,8 +68,8 @@ const Index = () => {
   };
 
   const checkCircuitCompletion = (tiles: TileType[]) => {
-    const startTile = tiles.find(tile => tile.isStart);
-    const endTile = tiles.find(tile => tile.isEnd);
+    const startTile = tiles.find(tile => tile?.isStart);
+    const endTile = tiles.find(tile => tile?.isEnd);
     
     if (!startTile || !endTile) return false;
     
@@ -67,32 +77,47 @@ const Index = () => {
   };
 
   const checkConnections = (currentTiles: TileType[]) => {
-    const newTiles = currentTiles.map(tile => ({ ...tile, isConnected: false }));
+    // Validate input
+    if (!currentTiles || !Array.isArray(currentTiles)) {
+      console.error("Invalid tiles array in checkConnections:", currentTiles);
+      return;
+    }
+
+    const newTiles = currentTiles.map(tile => tile ? { ...tile, isConnected: false } : null).filter(Boolean) as TileType[];
     let isAnyConnected = false;
 
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < newTiles.length; i++) {
       const tile = newTiles[i];
+      if (!tile || !tile.connections) continue;
+
       const tileConnections = getRotatedConnections(tile);
+      if (!tileConnections) continue;
       
-      if (i % 3 < 2) {
+      // Check right neighbor (if not at right edge)
+      if (i % 3 < 2 && i + 1 < newTiles.length) {
         const rightTile = newTiles[i + 1];
-        const rightConnections = getRotatedConnections(rightTile);
-        
-        if (tileConnections[1] && rightConnections[3]) {
-          tile.isConnected = true;
-          rightTile.isConnected = true;
-          isAnyConnected = true;
+        if (rightTile && rightTile.connections) {
+          const rightConnections = getRotatedConnections(rightTile);
+          
+          if (rightConnections && tileConnections[1] && rightConnections[3]) {
+            tile.isConnected = true;
+            rightTile.isConnected = true;
+            isAnyConnected = true;
+          }
         }
       }
 
-      if (i < 6) {
+      // Check bottom neighbor
+      if (i + 3 < newTiles.length) {
         const bottomTile = newTiles[i + 3];
-        const bottomConnections = getRotatedConnections(bottomTile);
-        
-        if (tileConnections[2] && bottomConnections[0]) {
-          tile.isConnected = true;
-          bottomTile.isConnected = true;
-          isAnyConnected = true;
+        if (bottomTile && bottomTile.connections) {
+          const bottomConnections = getRotatedConnections(bottomTile);
+          
+          if (bottomConnections && tileConnections[2] && bottomConnections[0]) {
+            tile.isConnected = true;
+            bottomTile.isConnected = true;
+            isAnyConnected = true;
+          }
         }
       }
     }
@@ -112,23 +137,37 @@ const Index = () => {
     }
   };
 
-  const getRotatedConnections = (tile: TileType) => {
+  const getRotatedConnections = (tile: TileType | null | undefined) => {
+    if (!tile || !tile.connections) {
+      console.error("Invalid tile in getRotatedConnections:", tile);
+      return null;
+    }
+
     const { connections, rotation } = tile;
-    const rotationSteps = (rotation / 90) % 4;
+    const rotationSteps = Math.floor((rotation / 90) % 4);
+    
+    // Create a copy to avoid mutating the original
     const rotatedConnections = [...connections];
     
     for (let i = 0; i < rotationSteps; i++) {
-      rotatedConnections.unshift(rotatedConnections.pop()!);
+      // Ensure we handle the case where pop returns undefined
+      const lastConnection = rotatedConnections.pop();
+      if (lastConnection !== undefined) {
+        rotatedConnections.unshift(lastConnection);
+      }
     }
     
     return rotatedConnections;
   };
 
   useEffect(() => {
-    checkConnections(tiles);
+    // Only run if tiles is defined and has items
+    if (tiles && tiles.length > 0) {
+      checkConnections([...tiles]);
+    }
   }, []);
 
-  const currentLevelConfig = levels[currentLevel - 1];
+  const currentLevelConfig = levels[currentLevel - 1] || { moveLimit: 0 };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
