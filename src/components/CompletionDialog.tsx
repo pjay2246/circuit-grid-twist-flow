@@ -34,26 +34,26 @@ const CompletionDialog = ({
             <Trophy className="h-6 w-6 text-yellow-500" />
             Level {currentLevel} Complete!
           </DialogTitle>
-          <DialogDescription className="text-center pt-4">
-            <p className="text-lg mb-2">Congratulations! You've connected the circuit!</p>
-            <div className="flex justify-center gap-8 mt-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Final Score</p>
-                <p className="text-xl font-bold text-primary">{score}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Moves Used</p>
-                <p className="text-xl font-bold text-primary">{moves}/{moveLimit}</p>
-              </div>
-            </div>
-            <Button 
-              onClick={onNextLevel}
-              className="mt-6"
-            >
-              Next Level
-            </Button>
-          </DialogDescription>
         </DialogHeader>
+        <div className="text-center pt-2">
+          <p className="text-lg mb-2">Congratulations! You've connected the circuit!</p>
+          <div className="flex justify-center gap-8 mt-4">
+            <div>
+              <p className="text-sm text-muted-foreground">Final Score</p>
+              <p className="text-xl font-bold text-primary">{score}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Moves Used</p>
+              <p className="text-xl font-bold text-primary">{moves}/{moveLimit}</p>
+            </div>
+          </div>
+          <Button 
+            onClick={onNextLevel}
+            className="mt-6"
+          >
+            Next Level
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

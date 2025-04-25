@@ -17,7 +17,12 @@ const Index = () => {
   const [isCompleted, setIsCompleted] = useState(false);
   const [tiles, setTiles] = useState<TileType[]>(() => {
     // Ensure we create a deep copy of the level tiles to avoid reference issues
-    return levels[0]?.tiles?.map(tile => ({...tile})) || [];
+    try {
+      return JSON.parse(JSON.stringify(levels[0]?.tiles || []));
+    } catch (e) {
+      console.error("Error initializing tiles:", e);
+      return [];
+    }
   });
 
   const handleNextLevel = () => {
@@ -25,14 +30,23 @@ const Index = () => {
       const nextLevel = currentLevel + 1;
       setCurrentLevel(nextLevel);
       // Create a deep copy of the level tiles to avoid reference issues
-      setTiles(levels[nextLevel - 1]?.tiles?.map(tile => ({...tile})) || []);
-      setMoves(0);
-      setIsCompleted(false);
-      
-      toast({
-        title: `Level ${nextLevel}`,
-        description: "Get ready for the next challenge!",
-      });
+      try {
+        setTiles(JSON.parse(JSON.stringify(levels[nextLevel - 1]?.tiles || [])));
+        setMoves(0);
+        setIsCompleted(false);
+        
+        toast({
+          title: `Level ${nextLevel}`,
+          description: "Get ready for the next challenge!",
+        });
+      } catch (e) {
+        console.error("Error loading next level:", e);
+        toast({
+          title: "Error",
+          description: "Failed to load next level",
+          variant: "destructive",
+        });
+      }
     } else {
       toast({
         title: "Game Complete!",
@@ -48,6 +62,11 @@ const Index = () => {
     }
 
     const currentLevelConfig = levels[currentLevel - 1];
+    if (!currentLevelConfig) {
+      console.error("Invalid level configuration for level:", currentLevel);
+      return;
+    }
+    
     if (moves >= currentLevelConfig.moveLimit) {
       toast({
         title: "Move Limit Reached",
@@ -68,6 +87,10 @@ const Index = () => {
   };
 
   const checkCircuitCompletion = (tiles: TileType[]) => {
+    if (!tiles || !Array.isArray(tiles)) {
+      return false;
+    }
+    
     const startTile = tiles.find(tile => tile?.isStart);
     const endTile = tiles.find(tile => tile?.isEnd);
     
@@ -78,17 +101,20 @@ const Index = () => {
 
   const checkConnections = (currentTiles: TileType[]) => {
     // Validate input
-    if (!currentTiles || !Array.isArray(currentTiles)) {
+    if (!currentTiles || !Array.isArray(currentTiles) || currentTiles.length === 0) {
       console.error("Invalid tiles array in checkConnections:", currentTiles);
       return;
     }
 
-    const newTiles = currentTiles.map(tile => tile ? { ...tile, isConnected: false } : null).filter(Boolean) as TileType[];
+    const newTiles = currentTiles
+      .map(tile => tile ? { ...tile, isConnected: false } : null)
+      .filter(Boolean) as TileType[];
+    
     let isAnyConnected = false;
 
     for (let i = 0; i < newTiles.length; i++) {
       const tile = newTiles[i];
-      if (!tile || !tile.connections) continue;
+      if (!tile) continue;
 
       const tileConnections = getRotatedConnections(tile);
       if (!tileConnections) continue;
@@ -96,7 +122,7 @@ const Index = () => {
       // Check right neighbor (if not at right edge)
       if (i % 3 < 2 && i + 1 < newTiles.length) {
         const rightTile = newTiles[i + 1];
-        if (rightTile && rightTile.connections) {
+        if (rightTile) {
           const rightConnections = getRotatedConnections(rightTile);
           
           if (rightConnections && tileConnections[1] && rightConnections[3]) {
@@ -110,7 +136,7 @@ const Index = () => {
       // Check bottom neighbor
       if (i + 3 < newTiles.length) {
         const bottomTile = newTiles[i + 3];
-        if (bottomTile && bottomTile.connections) {
+        if (bottomTile) {
           const bottomConnections = getRotatedConnections(bottomTile);
           
           if (bottomConnections && tileConnections[2] && bottomConnections[0]) {
@@ -138,8 +164,7 @@ const Index = () => {
   };
 
   const getRotatedConnections = (tile: TileType | null | undefined) => {
-    if (!tile || !tile.connections) {
-      console.error("Invalid tile in getRotatedConnections:", tile);
+    if (!tile || !Array.isArray(tile.connections)) {
       return null;
     }
 
@@ -168,6 +193,11 @@ const Index = () => {
   }, []);
 
   const currentLevelConfig = levels[currentLevel - 1] || { moveLimit: 0 };
+
+  // Don't render if no tiles data is available
+  if (!tiles || tiles.length === 0) {
+    return <div className="min-h-screen flex items-center justify-center">Loading game...</div>;
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">

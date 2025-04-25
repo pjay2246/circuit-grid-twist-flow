@@ -18,7 +18,7 @@ interface CircuitTileProps {
 
 const CircuitTile: React.FC<CircuitTileProps> = ({ tile, onRotate }) => {
   // Ensure we have a valid tile with connections before proceeding
-  if (!tile || !tile.connections) {
+  if (!tile || !Array.isArray(tile.connections)) {
     // Return a placeholder or empty tile if tile data is invalid
     return (
       <div 
