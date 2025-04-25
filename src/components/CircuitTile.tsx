@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { RotateCw } from 'lucide-react';
 
 export type TileType = {
@@ -9,6 +9,7 @@ export type TileType = {
   isConnected?: boolean;
   isStart?: boolean;
   isEnd?: boolean;
+  showFlow?: boolean;
 };
 
 interface CircuitTileProps {
@@ -17,14 +18,17 @@ interface CircuitTileProps {
 }
 
 const CircuitTile: React.FC<CircuitTileProps> = ({ tile, onRotate }) => {
-  // Ensure we have a valid tile with connections before proceeding
+  const [showCurrentFlow, setShowCurrentFlow] = useState(false);
+
+  useEffect(() => {
+    if (tile?.isConnected) {
+      setShowCurrentFlow(true);
+    }
+  }, [tile?.isConnected]);
+
   if (!tile || !Array.isArray(tile.connections)) {
-    // Return a placeholder or empty tile if tile data is invalid
     return (
-      <div 
-        className="circuit-tile bg-gray-200 flex items-center justify-center"
-        onClick={onRotate}
-      >
+      <div className="circuit-tile bg-gray-200 flex items-center justify-center">
         <span className="text-gray-400">Invalid</span>
       </div>
     );
@@ -32,13 +36,9 @@ const CircuitTile: React.FC<CircuitTileProps> = ({ tile, onRotate }) => {
 
   const getCircuitLines = () => {
     const lines = [];
-    // Top connection (North)
     if (tile.connections[0]) lines.push('top-0 left-1/2 w-[2px] h-1/2 -translate-x-1/2');
-    // Right connection (East)
     if (tile.connections[1]) lines.push('top-1/2 right-0 h-[2px] w-1/2 -translate-y-1/2');
-    // Bottom connection (South)
     if (tile.connections[2]) lines.push('bottom-0 left-1/2 w-[2px] h-1/2 -translate-x-1/2');
-    // Left connection (West)
     if (tile.connections[3]) lines.push('top-1/2 left-0 h-[2px] w-1/2 -translate-y-1/2');
     return lines;
   };
@@ -55,17 +55,17 @@ const CircuitTile: React.FC<CircuitTileProps> = ({ tile, onRotate }) => {
       {getCircuitLines().map((position, index) => (
         <div
           key={index}
-          className={`absolute ${position} ${tile.isConnected ? 'circuit-connected' : 'circuit-line'}`}
+          className={`absolute ${position} ${showCurrentFlow && tile.isConnected ? 'current-flow' : 'circuit-line'}`}
         />
       ))}
       {tile.isStart && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="bg-green-500 w-3 h-3 rounded-full z-10"></div>
+          <div className={`w-3 h-3 rounded-full z-10 ${showCurrentFlow ? 'bg-yellow-400 animate-pulse' : 'bg-green-500'}`}></div>
         </div>
       )}
       {tile.isEnd && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="bg-red-500 w-3 h-3 rounded-full z-10"></div>
+          <div className={`w-3 h-3 rounded-full z-10 ${showCurrentFlow ? 'bg-yellow-400 animate-pulse' : 'bg-red-500'}`}></div>
         </div>
       )}
       <RotateCw className="absolute -top-2 -right-2 w-4 h-4 text-primary/50 opacity-0 group-hover:opacity-100 transition-opacity" />

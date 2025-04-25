@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import GameGrid from '../components/GameGrid';
 import GameScore from '../components/GameScore';
@@ -16,7 +15,6 @@ const Index = () => {
   const [moves, setMoves] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
   const [tiles, setTiles] = useState<TileType[]>(() => {
-    // Ensure we create a deep copy of the level tiles to avoid reference issues
     try {
       return JSON.parse(JSON.stringify(levels[0]?.tiles || []));
     } catch (e) {
@@ -29,7 +27,6 @@ const Index = () => {
     if (currentLevel < levels.length) {
       const nextLevel = currentLevel + 1;
       setCurrentLevel(nextLevel);
-      // Create a deep copy of the level tiles to avoid reference issues
       try {
         setTiles(JSON.parse(JSON.stringify(levels[nextLevel - 1]?.tiles || [])));
         setMoves(0);
@@ -96,11 +93,18 @@ const Index = () => {
     
     if (!startTile || !endTile) return false;
     
-    return startTile.isConnected && endTile.isConnected;
+    const isCompleted = startTile.isConnected && endTile.isConnected;
+    
+    if (isCompleted) {
+      setTimeout(() => {
+        setIsCompleted(true);
+      }, 1000);
+    }
+    
+    return isCompleted;
   };
 
   const checkConnections = (currentTiles: TileType[]) => {
-    // Validate input
     if (!currentTiles || !Array.isArray(currentTiles) || currentTiles.length === 0) {
       console.error("Invalid tiles array in checkConnections:", currentTiles);
       return;
@@ -119,7 +123,6 @@ const Index = () => {
       const tileConnections = getRotatedConnections(tile);
       if (!tileConnections) continue;
       
-      // Check right neighbor (if not at right edge)
       if (i % 3 < 2 && i + 1 < newTiles.length) {
         const rightTile = newTiles[i + 1];
         if (rightTile) {
@@ -133,7 +136,6 @@ const Index = () => {
         }
       }
 
-      // Check bottom neighbor
       if (i + 3 < newTiles.length) {
         const bottomTile = newTiles[i + 3];
         if (bottomTile) {
@@ -171,11 +173,9 @@ const Index = () => {
     const { connections, rotation } = tile;
     const rotationSteps = Math.floor((rotation / 90) % 4);
     
-    // Create a copy to avoid mutating the original
     const rotatedConnections = [...connections];
     
     for (let i = 0; i < rotationSteps; i++) {
-      // Ensure we handle the case where pop returns undefined
       const lastConnection = rotatedConnections.pop();
       if (lastConnection !== undefined) {
         rotatedConnections.unshift(lastConnection);
@@ -186,7 +186,6 @@ const Index = () => {
   };
 
   useEffect(() => {
-    // Only run if tiles is defined and has items
     if (tiles && tiles.length > 0) {
       checkConnections([...tiles]);
     }
@@ -194,7 +193,6 @@ const Index = () => {
 
   const currentLevelConfig = levels[currentLevel - 1] || { moveLimit: 0 };
 
-  // Don't render if no tiles data is available
   if (!tiles || tiles.length === 0) {
     return <div className="min-h-screen flex items-center justify-center">Loading game...</div>;
   }

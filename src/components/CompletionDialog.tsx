@@ -3,11 +3,10 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Trophy } from "lucide-react";
+import { Award } from "lucide-react";
 
 interface CompletionDialogProps {
   isOpen: boolean;
@@ -31,25 +30,26 @@ const CompletionDialog = ({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-center gap-2 text-2xl">
-            <Trophy className="h-6 w-6 text-yellow-500" />
+            <Award className="h-8 w-8 text-yellow-500 animate-bounce" />
             Level {currentLevel} Complete!
           </DialogTitle>
         </DialogHeader>
         <div className="text-center pt-2">
-          <p className="text-lg mb-2">Congratulations! You've connected the circuit!</p>
+          <p className="text-lg mb-2">Circuit successfully connected!</p>
           <div className="flex justify-center gap-8 mt-4">
-            <div>
+            <div className="bg-primary/10 p-4 rounded-lg">
               <p className="text-sm text-muted-foreground">Final Score</p>
-              <p className="text-xl font-bold text-primary">{score}</p>
+              <p className="text-2xl font-bold text-primary">{score}</p>
             </div>
-            <div>
+            <div className="bg-primary/10 p-4 rounded-lg">
               <p className="text-sm text-muted-foreground">Moves Used</p>
-              <p className="text-xl font-bold text-primary">{moves}/{moveLimit}</p>
+              <p className="text-2xl font-bold text-primary">{moves}/{moveLimit}</p>
             </div>
           </div>
           <Button 
             onClick={onNextLevel}
-            className="mt-6"
+            className="mt-6 bg-primary hover:bg-primary/90"
+            size="lg"
           >
             Next Level
           </Button>
